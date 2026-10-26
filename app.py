@@ -7,6 +7,10 @@ st.set_page_config(page_title="GA TV Scheduling System", layout="wide")
 st.title("📺 TV Program Scheduling using Genetic Algorithm")
 st.markdown("Adjust parameters below to run the Genetic Algorithm and generate an optimized schedule.")
 
+# --- INITIALIZE TRIAL HISTORY IN SESSION STATE ---
+if "trial_history" not in st.session_state:
+    st.session_state.trial_history = []
+
 # --- SIDEBAR INPUTS ---
 st.sidebar.header("Genetic Algorithm Parameters")
 
@@ -153,6 +157,16 @@ if st.button("🚀 Run Genetic Algorithm"):
 
         result_df = pd.DataFrame(schedule_data)
 
+        # Record this run into trial history
+        st.session_state.trial_history.append({
+            "Trial #": f"Trial {len(st.session_state.trial_history) + 1}",
+            "Crossover Rate (CO_R)": co_r,
+            "Mutation Rate (MUT_R)": mut_r,
+            "Generations": generations,
+            "Population Size": pop_size,
+            "Total Rating Score": round(total_score, 2)
+        })
+
         st.success(f"Optimal Schedule Generated! Total Ratings Score: {round(total_score, 2)}")
         
         col1, col2 = st.columns([2, 1])
@@ -162,3 +176,17 @@ if st.button("🚀 Run Genetic Algorithm"):
             st.metric(label="Total Rating Score", value=round(total_score, 2))
             st.write(f"**Crossover Rate (CO_R):** {co_r}")
             st.write(f"**Mutation Rate (MUT_R):** {mut_r}")
+
+# --- DISPLAY RECORDED TRIAL HISTORY ---
+st.divider()
+st.subheader("📋 Experimentation Trial History")
+
+if st.session_state.trial_history:
+    history_df = pd.DataFrame(st.session_state.trial_history)
+    st.dataframe(history_df, use_container_width=True)
+    
+    if st.button("🗑️ Clear Trial History"):
+        st.session_state.trial_history = []
+        st.rerun()
+else:
+    st.info("No trials recorded yet. Change parameters in the sidebar and click 'Run Genetic Algorithm' to save your trial runs.")
